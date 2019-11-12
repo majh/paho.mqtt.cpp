@@ -43,8 +43,11 @@ const string TOPIC {"test/speed"};
 
 const char* LWT_PAYLOAD = "pub_speed_test died unexpectedly.";
 
+// Needs to be less than the queue size of the 'maxBufferedMessages' pahoo.mqtt.c, default 100
+const int QUEUE_SIZE = 10;
+
 // Queue for passing tokens to the wait thread
-mqtt::thread_queue<mqtt::delivery_token_ptr> que;
+mqtt::thread_queue<mqtt::delivery_token_ptr> que(QUEUE_SIZE);
 
 // Get the current time on the steady clock
 steady_clock::time_point now() { return steady_clock::now(); }
@@ -127,9 +130,10 @@ int main(int argc, char* argv[])
 
 		cout << "OK" << endl;
 		auto ms = msec(pubend - start);
-		cout << "Published in    " << ms << "ms " << (nMsg/ms) << "k msg/sec" << endl;
+		auto rate = ms > 0 ? (nMsg/ms) : 0;
+		cout << "Published in    " << ms << "ms " << rate << "k msg/sec" << endl;
 		ms = msec(end - start);
-		cout << "Acknowledged in " << ms << "ms " << (nMsg/ms) << "k msg/sec" << endl;
+		cout << "Acknowledged in " << ms << "ms " << rate << "k msg/sec" << endl;
 
 		// Disconnect
 		cout << "\nDisconnecting..." << flush;
