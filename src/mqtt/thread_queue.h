@@ -150,7 +150,7 @@ public:
 		unique_guard g(lock_);
 		auto n = que_.size();
 		if (n >= cap_) {
-			notFullCond_.wait(g, [=]{return que_.size() < cap_;});
+			notFullCond_.wait(g, [&]{return que_.size() < cap_;});
 			n = que_.size();
 		}
 		que_.emplace(std::move(val));
@@ -190,7 +190,7 @@ public:
 	bool try_put_for(value_type* val, const std::chrono::duration<Rep, Period>& relTime) {
 		unique_guard g(lock_);
 		auto n = que_.size();
-		if (n >= cap_ && !notFullCond_.wait_for(g, relTime, [=]{return que_.size() < cap_;}))
+		if (n >= cap_ && !notFullCond_.wait_for(g, relTime, [&]{return que_.size() < cap_;}))
 			return false;
 		que_.emplace(std::move(val));
 		if (n == 0) {
@@ -213,7 +213,7 @@ public:
 	bool try_put_until(value_type* val, const std::chrono::time_point<Clock,Duration>& absTime) {
 		unique_guard g(lock_);
 		auto n = que_.size();
-		if (n >= cap_ && !notFullCond_.wait_until(g, absTime, [=]{return que_.size() < cap_;}))
+		if (n >= cap_ && !notFullCond_.wait_until(g, absTime, [&]{return que_.size() < cap_;}))
 			return false;
 		que_.emplace(std::move(val));
 		if (n == 0) {
@@ -233,7 +233,7 @@ public:
 		unique_guard g(lock_);
 		auto n = que_.size();
 		if (n == 0) {
-			notEmptyCond_.wait(g, [=]{return !que_.empty();});
+			notEmptyCond_.wait(g, [&]{return !que_.empty();});
 			n = que_.size();
 		}
 		*val = std::move(que_.front());
@@ -254,7 +254,7 @@ public:
 		unique_guard g(lock_);
 		auto n = que_.size();
 		if (n == 0) {
-			notEmptyCond_.wait(g, [=]{return !que_.empty();});
+			notEmptyCond_.wait(g, [&]{return !que_.empty();});
 			n = que_.size();
 		}
 		value_type val = std::move(que_.front());
@@ -301,7 +301,7 @@ public:
 	bool try_get_for(value_type* val, const std::chrono::duration<Rep, Period>& relTime) {
 		unique_guard g(lock_);
 		auto n = que_.size();
-		if (n == 0 && !notEmptyCond_.wait_for(g, relTime, [=]{return !que_.empty();}))
+		if (n == 0 && !notEmptyCond_.wait_for(g, relTime, [&]{return !que_.empty();}))
 			return false;
 		*val = std::move(que_.front());
 		que_.pop();
@@ -325,7 +325,7 @@ public:
 	bool try_get_until(value_type* val, const std::chrono::time_point<Clock,Duration>& absTime) {
 		unique_guard g(lock_);
 		auto n = que_.size();
-		if (n == 0 && !notEmptyCond_.wait_until(g, absTime, [=]{return !que_.empty();}))
+		if (n == 0 && !notEmptyCond_.wait_until(g, absTime, [&]{return !que_.empty();}))
 			return false;
 		*val = std::move(que_.front());
 		que_.pop();
